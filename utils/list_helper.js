@@ -24,10 +24,12 @@ const favoriteBlog = (blogs) => {
 }
 
 const mostBlogs = (blogs) => {
+    // TODO 4.6
     return 1
 }
 
 const mostLikes = (blogs) => {
+    // TODO 4.7
     return 1
 }
 

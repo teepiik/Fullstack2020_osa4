@@ -90,9 +90,9 @@ describe('favoriteBlog', () => {
 })
 
 describe('mostBlogs', () => {
-    // TESTIT TÄNNE
+    // TODO add tests
 })
 
 describe('mostLikes', () => {
-    // TESTIT TÄNNE
+    // TODO add tests
 })
