@@ -6,10 +6,8 @@ const User = require('../models/User')
 userRouter.post('/', async (req, res, next) => {
     try {
         const body = req.body
-        
         const salt = bcrypt.genSaltSync(10)
-        const passwordHash = bcrypt.hashSync('body.password', salt)
-        // may need to be async
+        const passwordHash = bcrypt.hashSync(body.password, salt)
 
         if(body.username.length < 3) {
             res.statusMessage = 'Username length must be at least 3.'

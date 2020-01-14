@@ -1,6 +1,15 @@
 const blogRouter = require('express').Router()
 const Blog = require('../models/Blog')
 const User = require('../models/User')
+const jwt = require('jsonwebtoken')
+
+const getTokenFrom = request => {
+    const authorization = request.get('authorization')
+    if(authorization && authorization.toLowerCase().startsWith('bearer ')) {
+        return authorization.substring(7)
+    }
+    return null
+}
 
 // Base url is set to /api/blogs
 blogRouter.get('/', async (req, res) => {
@@ -10,7 +19,6 @@ blogRouter.get('/', async (req, res) => {
 })
 
 blogRouter.put('/:id', async (req, res, next) => {
-    // TODO Update
     const body = req.body
     const blog = {
         title: body.title,
@@ -30,30 +38,37 @@ blogRouter.put('/:id', async (req, res, next) => {
 
 blogRouter.post('/', async (req, res, next) => {
     const body = req.body
-    const user = await User.findById(body.userId)
+    const token = getTokenFrom(req)
+    
+    try{
+        const decodedToken = jwt.verify(token, process.env.SECRET)
+        if(!token || !decodedToken.id) {
+            return res.status(401).json({ error: 'Token missing or invalid.'})
+        }
 
-    const blog = new Blog({
-        title: body.title,
-        author: body.author,
-        url: body.url,
-        likes: body.likes,
-        user: user._id
-    })
+        const user = await User.findById(decodedToken.id)
 
-    if(blog.likes === undefined) {
-        blog.likes = 0
-    }
+        const blog = new Blog({
+            title: body.title,
+            author: body.author,
+            url: body.url,
+            likes: body.likes,
+            user: user._id
+        })
 
-    if(blog.title === undefined || blog.url === undefined) {
-        res.status(400).end()
-    }
+        if(blog.likes === undefined) {
+            blog.likes = 0
+        }
 
-    try {
+        if(blog.title === undefined || blog.url === undefined) {
+            res.status(400).end()
+        }
+
         savedBlog = await blog.save()
         user.blogs = user.blogs.concat(savedBlog._id)
         await user.save()
         res.json(savedBlog.toJSON())
-
+        
     } catch (exception) {
         next(exception)
     }
