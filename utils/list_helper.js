@@ -24,13 +24,29 @@ const favoriteBlog = (blogs) => {
 }
 
 const mostBlogs = (blogs) => {
-    // TODO 4.6
-    return 1
+    let bloggers = {}
+    blogs.forEach(blog => {
+        if(blog.author in bloggers) {
+            bloggers[blog.author] += 1
+        } else {
+            bloggers[blog.author] = 1
+        }
+    })
+    const highestKey = Object.keys(bloggers).reduce((a, b) => bloggers[a] > bloggers[b] ? a : b)
+    return { author: highestKey, blogs: bloggers[highestKey]}
 }
 
 const mostLikes = (blogs) => {
-    // TODO 4.7
-    return 1
+    let bloggers = {}
+    blogs.forEach(blog => {
+        if(blog.author in bloggers) {
+            bloggers[blog.author] = bloggers[blog.author] + blog.likes
+        } else {
+            bloggers[blog.author] = blog.likes
+        }
+    })
+    const highestKey = Object.keys(bloggers).reduce((a, b) => bloggers[a] > bloggers[b] ? a : b)
+    return { author: highestKey, likes: bloggers[highestKey]}
 }
 
 module.exports = {
