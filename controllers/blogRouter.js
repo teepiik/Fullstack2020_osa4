@@ -3,14 +3,6 @@ const Blog = require('../models/Blog')
 const User = require('../models/User')
 const jwt = require('jsonwebtoken')
 
-const getTokenFrom = request => {
-    const authorization = request.get('authorization')
-    if(authorization && authorization.toLowerCase().startsWith('bearer ')) {
-        return authorization.substring(7)
-    }
-    return null
-}
-
 // Base url is set to /api/blogs
 blogRouter.get('/', async (req, res) => {
     const blogs = await Blog
@@ -31,18 +23,17 @@ blogRouter.put('/:id', async (req, res, next) => {
         updatedBlog = await Blog.findByIdAndUpdate(req.params.id, blog, {new:true})
         res.json(updatedBlog.toJSON())
 
-    } catch (exception) {
-        next(exception)
+    } catch (error) {
+        next(error)
     }
 })
 
 blogRouter.post('/', async (req, res, next) => {
     const body = req.body
-    const token = getTokenFrom(req)
     
     try{
-        const decodedToken = jwt.verify(token, process.env.SECRET)
-        if(!token || !decodedToken.id) {
+        const decodedToken = jwt.verify(req.token, process.env.SECRET)
+        if(!req.token || !decodedToken.id) {
             return res.status(401).json({ error: 'Token missing or invalid.'})
         }
 
@@ -50,7 +41,7 @@ blogRouter.post('/', async (req, res, next) => {
 
         const blog = new Blog({
             title: body.title,
-            author: body.author,
+            author: user.username,
             url: body.url,
             likes: body.likes,
             user: user._id
@@ -69,19 +60,30 @@ blogRouter.post('/', async (req, res, next) => {
         await user.save()
         res.json(savedBlog.toJSON())
         
-    } catch (exception) {
-        next(exception)
+    } catch (error) {
+        next(error)
     }
 })
 
 blogRouter.delete('/:id', async (req, res, next) => {
     try {
-        // TODO ADD USER CHECK 4.21
+        const decodedToken = jwt.verify(req.token, process.env.SECRET)
+        if(!req.token || !decodedToken.id) {
+            return res.status(401).json({ error: 'Token missing or invalid.'})
+        }
+
+        const user = await User.findById(decodedToken.id)
+        const blogToDel = await Blog.findById(req.params.id)
+
+        if(user._id.toString() !== blogToDel.user.toString()) {
+            return res.status(401).json({ error: 'You dont have right to delete this blog.'})
+        }
+
         await Blog.findByIdAndRemove(req.params.id)
         res.status(204).end()
 
-    } catch (exception) {
-        next(exception)
+    } catch (error) {
+        next(error)
     }
 })
 
