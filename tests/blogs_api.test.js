@@ -39,8 +39,9 @@ beforeEach(async () => {
     blogObject = new Blog(initialBlogs[1])
     await blogObject.save()
 
-    const userObject = new User(dummyUser)
-    await userObject.save()
+    await api
+            .post('/api/users')
+            .send(dummyUser)
 })
 
 describe('API GET testing', () => {
@@ -70,6 +71,11 @@ describe('API POST testing', () => {
         const user = res.body[0]
         user._id = user.id
 
+        const tokenres = await api
+            .post('/api/login')
+            .send({ username: 'Dumpsi', password: 'sikred' })
+        const token = tokenres.body.token
+
         const newBlog = 
         {
             title: 'POSTED',
@@ -82,6 +88,7 @@ describe('API POST testing', () => {
         await api
             .post('/api/blogs')
             .send(newBlog)
+            .set('Authorization', 'bearer ' + token)
             .expect(200)
 
         const response = await api.get('/api/blogs')
@@ -93,18 +100,23 @@ describe('API POST testing', () => {
         const user = res.body[0]
         user._id = user.id
 
+        const tokenres = await api
+            .post('/api/login')
+            .send({ username: 'Dumpsi', password: 'sikred' })
+        const token = tokenres.body.token
+
         const newBlog = 
         {
             title: 'POSTED',
             author: 'Pateposter',
             url: 'www.posting.com',
-            //likes: undefined,
             userId: user
         }
 
         await api
             .post('/api/blogs')
             .send(newBlog)
+            .set('Authorization', 'bearer ' + token)
             .expect(200)
 
         const response = await api.get('/api/blogs')
@@ -115,6 +127,11 @@ describe('API POST testing', () => {
         const res = await api.get('/api/users')
         const user = res.body[0]
         user._id = user.id
+
+        const tokenres = await api
+            .post('/api/login')
+            .send({ username: 'Dumpsi', password: 'sikred' })
+        const token = tokenres.body.token
 
         const newBlog = 
         {
@@ -127,6 +144,7 @@ describe('API POST testing', () => {
         await api
             .post('/api/blogs')
             .send(newBlog)
+            .set('Authorization', 'bearer ' + token)
             .expect(400)
     })
 
@@ -134,6 +152,11 @@ describe('API POST testing', () => {
         const res = await api.get('/api/users')
         const user = res.body[0]
         user._id = user.id
+
+        const tokenres = await api
+            .post('/api/login')
+            .send({ username: 'Dumpsi', password: 'sikred' })
+        const token = tokenres.body.token
 
         const newBlog = 
         {
@@ -146,7 +169,29 @@ describe('API POST testing', () => {
         await api
             .post('/api/blogs')
             .send(newBlog)
+            .set('Authorization', 'bearer ' + token)
             .expect(400)
+    })
+
+    test('No token gives 401 status', async () => {
+        const res = await api.get('/api/users')
+        const user = res.body[0]
+        user._id = user.id
+
+        const newBlog = 
+        {
+            title: 'POSTED',
+            author: 'Pateposter',
+            likes: 4,
+            url: 'www',
+            userId: user
+        }
+
+        await api
+            .post('/api/blogs')
+            .send(newBlog)
+            .set('Authorization', 'bearer ')
+            .expect(401)
     })
 })
 
