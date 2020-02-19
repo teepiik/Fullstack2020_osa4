@@ -44,7 +44,7 @@ blogRouter.post('/', async (req, res, next) => {
             author: user.username,
             url: body.url,
             likes: body.likes,
-            user: user._id
+            user: user
         })
 
         if(blog.likes === undefined) {
