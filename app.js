@@ -27,8 +27,10 @@ app.use('/api/users', userRouter)
 app.use('/api/login', loginRouter)
 
 // Run this only in test mode
-const testingRouter = require('./controllers/testing')
-app.use('/api/testing', testingRouter)
+if (process.env.NODE_ENV === 'test') {
+    const testingRouter = require('./controllers/testing')
+    app.use('/api/testing', testingRouter)
+}
 
 app.use(middleware.errorHandler)
 
