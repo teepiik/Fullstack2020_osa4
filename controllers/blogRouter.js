@@ -87,4 +87,33 @@ blogRouter.delete('/:id', async (req, res, next) => {
     }
 })
 
+blogRouter.post('/:id/comments', async (req, res, next) => {
+    const body = req.body
+    
+    try{
+        let comments = []
+
+        const blogToComment = await Blog.findById(req.params.id)
+        if(blogToComment.comments) {
+            comments = blogToComment.comments
+        }
+        comments = comments.concat(body.comment)
+        const commented = {
+            title: blogToComment.title,
+            author: blogToComment.author,
+            url: blogToComment.url,
+            likes: blogToComment.likes,
+            user: blogToComment.user,
+            comments: comments
+        }
+
+        const updated = await Blog.findByIdAndUpdate(req.params.id, commented, {new:true})
+        
+        res.json(updated.toJSON())
+        
+    } catch (error) {
+        next(error)
+    }
+})
+
 module.exports = blogRouter
